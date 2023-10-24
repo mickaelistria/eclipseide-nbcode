@@ -1,0 +1,35 @@
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
+    - name: Set up JDK 17 ☕
+      uses: actions/setup-java@v3
+      with:
+        java-version: 17
+        distribution: 'temurin'
+    - name: Set up Maven
+      uses: stCarolas/setup-maven@v4.5
+      with:
+        maven-version: 3.9.3
+    - name: Set up Display 📺
+      if: ${{ runner.os == 'Linux' }}
+      run: |
+        sudo apt-get update --fix-missing;
+        sudo apt-get install mutter dbus-x11;
+        dbus-launch --auto-syntax > dbus-env;
+        source dbus-env;
+        mutter --no-x11 --headless --virtual-monitor 1920x1080 &
+    - name: Build with Maven 🏗️
+      run: mvn -B clean verify
