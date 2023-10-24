@@ -7,13 +7,17 @@ package com.redhat.eclipseide.nbcode;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FileFieldEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
+import org.eclipse.ui.dialogs.PreferencesUtil;
+import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 
 public class NBCodePreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
@@ -39,6 +43,15 @@ public class NBCodePreferencePage extends FieldEditorPreferencePage implements I
 			""");
 		Control fields = super.createContents(res);
 		fields.setLayoutData(new GridData(SWT.FILL, SWT.DEFAULT, true, false));
+		Link link = new Link(res, SWT.WRAP);
+		link.setText("Go to the <A>Language Servers</A> page to can disable/re-enable nbcode.");
+		link.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> {
+			if (getContainer() instanceof IWorkbenchPreferenceContainer dialog) {
+				dialog.openPage("org.eclipse.lsp4e.preferences", null);
+			} else {
+				PreferencesUtil.createPreferenceDialogOn(getShell(), NBCodePreferencePage.PAGE_ID, null, null).open();
+			}
+		}));
 		return res;
 	}
 

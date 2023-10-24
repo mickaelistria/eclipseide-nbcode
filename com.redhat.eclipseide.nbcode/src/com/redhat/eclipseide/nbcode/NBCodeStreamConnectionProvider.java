@@ -8,24 +8,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
 
-import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.dialogs.PreferencesUtil;
 
 public class NBCodeStreamConnectionProvider extends ProcessStreamConnectionProvider implements IPropertyChangeListener {
 
-	final static int port = 9123; // currently static, should be made dynamic
 	public static final String PREF_NBCODE_LOCATION = "nbcodeLocation"; //$NON-NLS-1$
 	private boolean alreadyWarned = false;
 	private InputStream in;
 	private OutputStream out;
 	private Socket clientSocket;
+	private int port;
 
 	public NBCodeStreamConnectionProvider() {
 		super(List.of("path to nbcode not set!"));
@@ -34,15 +35,20 @@ public class NBCodeStreamConnectionProvider extends ProcessStreamConnectionProvi
 
 	@Override
 	protected ProcessBuilder createProcessBuilder() {
+		try (ServerSocket server = new ServerSocket(0)) {
+			this.port = server.getLocalPort();
+		} catch (IOException e) {
+			e.printStackTrace();
+			this.port = 9123;
+		}
 		String nbcodeLocation = Activator.getDefault().getPreferenceStore().getString(PREF_NBCODE_LOCATION);
 		if (nbcodeLocation != null && !nbcodeLocation.isEmpty()) {
 			this.setCommands(List.of(nbcodeLocation, "--start-java-language-server=listen:" + port));
 		} else {
 			if (!alreadyWarned) {
+				alreadyWarned = true;
 				Display.getDefault().asyncExec(() -> {
-					PreferenceDialog prefDialog = new PreferenceDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), PlatformUI.getWorkbench().getPreferenceManager());
-					prefDialog.setSelectedNode(NBCodePreferencePage.PAGE_ID);
-					prefDialog.open();
+					PreferencesUtil.createPreferenceDialogOn(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), NBCodePreferencePage.PAGE_ID, null, null).open();
 				});
 			}
 		}
@@ -51,24 +57,21 @@ public class NBCodeStreamConnectionProvider extends ProcessStreamConnectionProvi
 
 	@Override
 	public void start() throws IOException {
-		super.start();
 		try {
+			super.start();
 			Thread.sleep(3000); // give some time for LS to start
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			this.clientSocket = new Socket(InetAddress.getLocalHost(), port);
+			this.in = this.clientSocket.getInputStream();
+			this.out = this.clientSocket.getOutputStream();
+		} catch (Exception e) {
+			// most likely process hasn't started well: wrong path?
+			if (!alreadyWarned) {
+				alreadyWarned = true;
+				Display.getDefault().asyncExec(() -> {
+					PreferencesUtil.createPreferenceDialogOn(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), NBCodePreferencePage.PAGE_ID, null, null).open();
+				});
+			}
 		}
-		ProcessHandle handle = getAdapter(ProcessHandle.class);
-		if (handle == null || !handle.isAlive() && !alreadyWarned) {
-			Display.getDefault().asyncExec(() -> {
-				PreferenceDialog prefDialog = new PreferenceDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), PlatformUI.getWorkbench().getPreferenceManager());
-				prefDialog.setSelectedNode(NBCodePreferencePage.PAGE_ID);
-				prefDialog.open();
-			});
-		}
-		this.clientSocket = new Socket(InetAddress.getLocalHost(), port);
-		this.in = this.clientSocket.getInputStream();
-		this.out = this.clientSocket.getOutputStream();
 	}
 
 	@Override
