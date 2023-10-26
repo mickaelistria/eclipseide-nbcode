@@ -1,5 +1,9 @@
 package com.redhat.eclipseide.nbcode.filesystem;
 
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Red Hat, Inc.. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 import java.net.URI;
 import java.nio.file.Path;
 
