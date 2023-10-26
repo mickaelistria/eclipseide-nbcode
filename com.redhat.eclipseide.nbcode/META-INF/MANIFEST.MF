@@ -10,7 +10,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.lsp4e,
  org.eclipse.tm4e.registry,
  org.eclipse.tm4e.language_pack;bundle-version="0.2.1",
- org.eclipse.lsp4j;bundle-version="0.21.1"
+ org.eclipse.lsp4j;bundle-version="0.21.1",
+ org.eclipse.core.filesystem
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: com.redhat.eclipseide.nbcode
 Bundle-ActivationPolicy: lazy

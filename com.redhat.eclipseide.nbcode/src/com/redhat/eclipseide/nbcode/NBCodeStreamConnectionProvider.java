@@ -22,7 +22,7 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
 public class NBCodeStreamConnectionProvider extends ProcessStreamConnectionProvider implements IPropertyChangeListener {
 
 	public static final String PREF_NBCODE_LOCATION = "nbcodeLocation"; //$NON-NLS-1$
-	private boolean alreadyWarned = false;
+	private static boolean alreadyWarned = false;
 	private InputStream in;
 	private OutputStream out;
 	private Socket clientSocket;
@@ -43,7 +43,7 @@ public class NBCodeStreamConnectionProvider extends ProcessStreamConnectionProvi
 		}
 		String nbcodeLocation = Activator.getDefault().getPreferenceStore().getString(PREF_NBCODE_LOCATION);
 		if (nbcodeLocation != null && !nbcodeLocation.isEmpty()) {
-			this.setCommands(List.of(nbcodeLocation, "--start-java-language-server=listen:" + port));
+			this.setCommands(List.of(nbcodeLocation, "-J" + "--enable-preview", "--start-java-language-server=listen:" + port));
 		} else {
 			if (!alreadyWarned) {
 				alreadyWarned = true;
@@ -100,7 +100,7 @@ public class NBCodeStreamConnectionProvider extends ProcessStreamConnectionProvi
 	@Override
 	public void propertyChange(PropertyChangeEvent event) {
 		if (PREF_NBCODE_LOCATION.equals(event.getProperty())) {
-			this.alreadyWarned = false;
+			alreadyWarned = false;
 			this.stop();
 		}
 	}

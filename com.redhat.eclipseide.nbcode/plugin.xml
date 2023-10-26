@@ -36,5 +36,14 @@
             editorId="org.eclipse.ui.genericeditor.GenericEditor">
       </editorContentTypeBinding>
    </extension>
+   <extension
+         point="org.eclipse.core.filesystem.filesystems">
+      <filesystem
+            scheme="jar">
+         <run
+               class="com.redhat.eclipseide.nbcode.filesystem.JarFileSystem">
+         </run>
+      </filesystem>
+   </extension>
 
 </plugin>
